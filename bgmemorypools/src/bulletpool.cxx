@@ -1,7 +1,7 @@
-#include "bgmemorypools/bulletpool.hxx"
+#include "bgmemorypools/bulletpool.hxx"  
 
 namespace bg {
-    bool BulletPool::herp() { 
+    bool BulletPool::herp() {
         return true;
     }
 }

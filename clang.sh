@@ -1,3 +1,5 @@
 export CC=/usr/bin/clang
 export CXX=/usr/bin/clang++
-cmake .
+mkdir -p build
+cd build
+cmake ..
