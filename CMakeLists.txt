@@ -1,6 +1,11 @@
 cmake_minimum_required (VERSION 3.10 FATAL_ERROR)
 project (BGMemoryPools VERSION 0.1 LANGUAGES CXX)
 
+IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
+    message("debug mode")
+    ADD_DEFINITIONS(-DASSERTIONS_ENABLED)
+ENDIF(CMAKE_BUILD_TYPE MATCHES DEBUG)
+
 include_directories(include)
 
 # Prevent overriding the parent project's compiler/linker

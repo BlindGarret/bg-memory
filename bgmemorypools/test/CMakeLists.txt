@@ -2,6 +2,7 @@ set(
     TESTS 
         "src/main.cxx"
         "src/example.cxx"
+        "src/memoryfunctions.cxx"
 )
 
 add_executable(tests ${TESTS})

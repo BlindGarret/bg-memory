@@ -1,7 +1,11 @@
 set(
     SOURCES 
+        "src/memoryfunctions.cxx"
         "src/bulletpool.cxx"
+
         "include/bgmemorypools/bulletpool.hxx"
+        "include/bgmemorypools/assert.hxx"
+        "include/bgmemorypools/memoryfunctions.hxx"
 )
 
 add_library(bgmemorypools ${SOURCES})
