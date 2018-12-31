@@ -1,4 +1,4 @@
-# bg-memory-pools
-A set of memory allocators and tools.
+# bg-memory
+A set of memory tools.
 
 UNDER CONSTRUCTION. README TO FOLLOW.

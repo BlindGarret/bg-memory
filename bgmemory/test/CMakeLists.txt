@@ -1,8 +1,9 @@
 set(
     TESTS 
+        # "src/example.cxx"
+        # "src/memoryfunctions.cxx"
         "src/main.cxx"
-        "src/example.cxx"
-        "src/memoryfunctions.cxx"
+        "src/pointers/MutableUniquePtr.cxx"
 )
 
 add_executable(tests ${TESTS})
@@ -15,4 +16,4 @@ set_target_properties( tests
 )
 
 
-target_link_libraries(tests bgmemorypools gtest gmock)
+target_link_libraries(tests bgmemory gtest gmock)

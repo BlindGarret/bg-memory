@@ -1,6 +1,6 @@
 #include <stdlib.h>
 
-#include "bgmemorypools/assert.hxx"
+#include "bgmemory/assert.hxx"
 
 namespace bg {
     void* allocateAlligned(size_t sizeInBytes, size_t alignment) {

@@ -1,4 +1,4 @@
-#include "bgmemorypools/bulletpool.hxx"  
+#include "bgmemory/bulletpool.hxx"  
 
 namespace bg {
     bool BulletPool::herp() {

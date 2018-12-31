@@ -1,7 +1,7 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
-#include "bgmemorypools/memoryfunctions.hxx"
+#include "bgmemory/memoryfunctions.hxx"
 
 TEST(allocateAlligned, testing) {
     bg::allocateAlligned(0, 0);
