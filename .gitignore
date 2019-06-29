@@ -12,3 +12,4 @@ lib
 obj
 .vscode
 build
+tests/

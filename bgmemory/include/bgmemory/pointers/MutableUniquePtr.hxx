@@ -44,7 +44,14 @@ class MutableUniquePtr {
   struct PointerPayload {
     T *managedObject = nullptr;
     DeleterT deleter;
-    bool isActive = false;
+
+    PointerPayload() {}
+    PointerPayload(const DeleterT &d) {
+      deleter = d;
+    }
+    PointerPayload(DeleterT &d) {
+      deleter = d;
+    }
   };
 
   PointerPayload *payload = nullptr;
@@ -59,7 +66,6 @@ class MutableUniquePtr {
   */
   MutableUniquePtr() {
     payload = new PointerPayload();
-    payload->deleter = DeleterT();
   }
 
   /*
@@ -70,8 +76,8 @@ class MutableUniquePtr {
       noexcept guarantee.
 
   */
-  constexpr MutableUniquePtr(std::nullptr_t) noexcept {  // NOLINT
-    // todo: implement
+  constexpr MutableUniquePtr(std::nullptr_t) noexcept {  // NOLINT    
+    payload = new PointerPayload();
   }
 
   /*
@@ -85,7 +91,8 @@ class MutableUniquePtr {
       @param pointer the pointer to take ownership of.
   */
   explicit MutableUniquePtr(T *pointer) noexcept {
-    // todo: implement
+    payload = new PointerPayload();
+    payload->managedObject = pointer;
   }
 
   /*
@@ -99,8 +106,10 @@ class MutableUniquePtr {
       @param pointer the pointer to take ownership of.
       @param d a reference to an instance of the deleter.
   */
-  MutableUniquePtr(T *pointer, const DeleterT &d) noexcept {
-    // todo: implement
+  MutableUniquePtr(T *pointer, const DeleterT &d) noexcept { 
+    payload = new PointerPayload();
+    payload->managedObject = pointer;
+    payload->deleter = d;
   }
 
   /*
@@ -116,7 +125,9 @@ class MutableUniquePtr {
       @param d an r-value reference to an instance of the deleter.
   */
   MutableUniquePtr(T *pointer, DeleterT &&d) noexcept {
-    // todo: implement
+    payload = new PointerPayload();
+    payload->managedObject = pointer;
+    payload->deleter = d;
   }
 
   /*
@@ -126,6 +137,7 @@ class MutableUniquePtr {
 
   ~MutableUniquePtr() {
     payload->deleter(payload->managedObject);
+    delete(payload);
   }
 
   /*
@@ -135,7 +147,9 @@ class MutableUniquePtr {
       @return the pointer to the contained object.
   */
   T *release() noexcept {
-    // todo: implement
+    auto hold = payload->managedObject;
+    payload->managedObject = nullptr;
+    return hold;
   }
 
   /*
@@ -144,7 +158,8 @@ class MutableUniquePtr {
       @param ptr pointer to the object to take ownership of.
   */
   void reset(T *ptr) noexcept {
-    // todo: implement
+    payload->deleter(payload->managedObject);
+    payload->managedObject = ptr;
   }
 
   /*
@@ -155,7 +170,8 @@ class MutableUniquePtr {
       @param ptr the pointer to take ownership of.
   */
   void mutate(T *ptr) noexcept {
-    // todo: implement
+    payload->deleter(payload->managedObject);
+    payload->managedObject = ptr;
   }
 
   /*
@@ -166,7 +182,9 @@ class MutableUniquePtr {
   */
   void swap(MutableUniquePtr<T, DeleterT>  // NOLINT
                 &other) noexcept {
-    // todo: implement
+    T *holdPointer = other.payload->managedObject;
+    other.payload->managedObject = payload->managedObject;
+    payload->managedObject = holdPointer;
   }
 
   /*
@@ -175,7 +193,7 @@ class MutableUniquePtr {
       @return raw pointer to the managed object.
   */
   T *get() const noexcept {
-    // todo: implement
+    return payload->managedObject;
   }
 
   /*
@@ -184,7 +202,7 @@ class MutableUniquePtr {
       @return reference to the defined deleter.
   */
   DeleterT &getDeleter() noexcept {
-    // todo: implement
+    return payload->deleter;
   }
 
   /*
@@ -194,7 +212,7 @@ class MutableUniquePtr {
       @return constant reference to the defined deleter.
   */
   const DeleterT &getDeleter() const noexcept {
-    // todo: implement
+    return payload->deleter;
   }
 
   /*
@@ -204,7 +222,7 @@ class MutableUniquePtr {
       @return whether there is an object being managed.
   */
   explicit operator bool() const noexcept {
-    // todo: implement
+    return payload->managedObject != nullptr;
   }
 
   /*
@@ -217,7 +235,7 @@ class MutableUniquePtr {
       @return l-value reference to the underlying memory.
   */
   typename std::add_lvalue_reference<T>::type operator*() const {
-    // todo: implement
+    return *payload->managedObject;
   }
 
   /*
@@ -230,7 +248,7 @@ class MutableUniquePtr {
       @return reference to the underlying memory.
   */
   T *operator->() const noexcept {
-    // todo: implement
+    return payload->managedObject;
   }
 };
 }  // namespace bg

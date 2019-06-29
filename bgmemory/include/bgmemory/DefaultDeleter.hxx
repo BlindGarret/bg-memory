@@ -8,6 +8,7 @@
 */
 template <class T>
 class DefaultDeleter {
+  public:
   constexpr DefaultDeleter() noexcept {}
   /*
       Object function operator for deleting the raw pointer
