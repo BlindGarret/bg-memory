@@ -10,6 +10,5 @@ CTestTestfile.cmake
 bin
 lib
 obj
-.vscode
 build
 tests/

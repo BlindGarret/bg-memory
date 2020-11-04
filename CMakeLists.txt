@@ -1,4 +1,11 @@
 cmake_minimum_required (VERSION 3.10 FATAL_ERROR)
+set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
+SET( CMAKE_CXX_STANDARD 14 )
+SET( CMAKE_CXX_STANDARD_REQUIRED ON )
+set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
+set(CMAKE_CXX_FLAGS_DEBUG "-g")
+set(CMAKE_CXX_FLAGS_RELEASE "-O2 -s")
+set(CMAKE_CXX_STANDARD_LIBRARIES "-static-libgcc -static-libstdc++")
 project (BGMemory VERSION 0.1 LANGUAGES CXX)
 
 IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
@@ -7,11 +14,6 @@ IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
 ENDIF(CMAKE_BUILD_TYPE MATCHES DEBUG)
 
 include_directories(include)
-
-# Prevent overriding the parent project's compiler/linker
-# settings on Windows
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-add_subdirectory(googletest)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)

@@ -1,0 +1,7 @@
+{
+    "C_Cpp.default.includePath": [
+        "../googletest/googletest/include",
+        "../googletest/googlemock/include",
+        "./bgmemory/include"
+    ]
+}
