@@ -3,5 +3,10 @@
         "../googletest/googletest/include",
         "../googletest/googlemock/include",
         "./bgmemory/include"
-    ]
+    ],
+    "files.associations": {
+        "*.nswag": "json",
+        "memory": "cpp"
+    },
+    "editor.formatOnSave": true
 }

@@ -108,34 +108,6 @@ TEST(mutable_shared_ptr,
 }
 
 TEST(mutable_shared_ptr,
-     PointerConstructor_CalledAndReleased_SetsBoolToExpected)
-{
-  const bool expected = false;
-
-  bg::MutableSharedPtr<int> p(new int());
-  auto danglingPointer = p.release();
-
-  ASSERT_FALSE(p);
-
-  //Clean up the leak
-  delete danglingPointer;
-}
-
-TEST(mutable_shared_ptr,
-     PointerConstructor_Called_ReleaseReturnsExpected)
-{
-  auto raw = new int(3);
-
-  bg::MutableSharedPtr<int> p(raw);
-  auto released = p.release();
-
-  ASSERT_EQ(raw, released);
-
-  //Clean up the leak
-  delete released;
-}
-
-TEST(mutable_shared_ptr,
      PointerConstructor_Called_AllowsForMethodAccess)
 {
   const int expected = 42;
@@ -199,34 +171,6 @@ TEST(mutable_shared_ptr,
   bg::MutableSharedPtr<int, IdTestDeleter<int>> p(new int(), IdTestDeleter<int>());
 
   ASSERT_TRUE(p);
-}
-
-TEST(mutable_shared_ptr,
-     PointerRValueDeleterConstructor_CalledAndReleased_SetsBoolToExpected)
-{
-  const bool expected = false;
-
-  bg::MutableSharedPtr<int, IdTestDeleter<int>> p(new int(), IdTestDeleter<int>());
-  auto released = p.release();
-
-  ASSERT_FALSE(p);
-
-  //Clean up the leak
-  delete released;
-}
-
-TEST(mutable_shared_ptr,
-     PointerRValueDeleterConstructor_Called_ReleaseReturnsExpected)
-{
-  auto raw = new int(3);
-
-  bg::MutableSharedPtr<int, IdTestDeleter<int>> p(raw, IdTestDeleter<int>());
-  auto released = p.release();
-
-  ASSERT_EQ(raw, released);
-
-  //Clean up the leak
-  delete released;
 }
 
 TEST(mutable_shared_ptr,
@@ -323,36 +267,6 @@ TEST(mutable_shared_ptr,
 }
 
 TEST(mutable_shared_ptr,
-     PointerConstDeleterConstructor_CalledAndReleased_SetsBoolToExpected)
-{
-  const bool expected = false;
-
-  const IdTestDeleter<int> d;
-  bg::MutableSharedPtr<int, IdTestDeleter<int>> p(new int(), d);
-  auto released = p.release();
-
-  ASSERT_FALSE(p);
-
-  //Clean up the leak
-  delete released;
-}
-
-TEST(mutable_shared_ptr,
-     PointerConstDeleterConstructor_Called_ReleaseReturnsExpected)
-{
-  auto raw = new int(3);
-
-  const IdTestDeleter<int> d;
-  bg::MutableSharedPtr<int, IdTestDeleter<int>> p(raw, d);
-  auto released = p.release();
-
-  ASSERT_EQ(raw, released);
-
-  //Clean up the leak
-  delete released;
-}
-
-TEST(mutable_shared_ptr,
      PointerConstDeleterConstructor_Called_AllowsForMethodAccess)
 {
   const int expected = 42;
@@ -425,24 +339,6 @@ TEST(mutable_shared_ptr,
   p.reset(secondObject);
 
   ASSERT_EQ(expected, TrackedDeletableTestObject::getLiveObjectCount());
-}
-
-//---------------------
-//  Release
-//---------------------
-
-TEST(mutable_shared_ptr,
-     Release_Calle_SetsManagedToNullPtr)
-{
-  int *expected = nullptr;
-
-  bg::MutableSharedPtr<int> p(new int());
-  auto released = p.release();
-
-  ASSERT_EQ(expected, p.get());
-
-  //Clean up the leak
-  delete released;
 }
 
 //---------------------

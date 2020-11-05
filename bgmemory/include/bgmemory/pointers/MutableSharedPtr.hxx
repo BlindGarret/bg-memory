@@ -1,13 +1,16 @@
-// Copyright [2019] BlindGarret<lroe2930@gmail.com>
+// Copyright [2020] BlindGarret<lroe2930@gmail.com>
 #ifndef BGMEMORY_INCLUDE_BGMEMORY_POINTERS_MUTABLESHAREDPTR_HXX_
 #define BGMEMORY_INCLUDE_BGMEMORY_POINTERS_MUTABLESHAREDPTR_HXX_
 
 #include <memory>
 #include "bgmemory/DefaultDeleter.hxx"
+#include "bgmemory/pointers/SharedPointerPayload.hxx"
 
 #ifdef BG_MEMORY_MULTITHREAD
 
 #endif // BG_MEMORY_MULTITHREAD
+
+// TODO: Allow for specialized allocators so metadata isn't allocated on the stack
 
 namespace bg
 {
@@ -42,24 +45,7 @@ namespace bg
     template <class T, class DeleterT = DefaultDeleter<T>>
     class MutableSharedPtr
     {
-        struct PointerPayload
-        {
-            T *managedObject = nullptr;
-            long count = 1;
-            DeleterT deleter;
-
-            PointerPayload() {}
-            PointerPayload(const DeleterT &d)
-            {
-                deleter = d;
-            }
-            PointerPayload(DeleterT &d)
-            {
-                deleter = d;
-            }
-        };
-
-        PointerPayload *payload = nullptr;
+        SharedPointerPayload<T, DeleterT> *payload = nullptr;
 
     public:
         /*
@@ -71,7 +57,7 @@ namespace bg
         */
         MutableSharedPtr()
         {
-            payload = new PointerPayload();
+            payload = new SharedPointerPayload<T, DeleterT>();
         }
 
         /*
@@ -83,7 +69,7 @@ namespace bg
         */
         constexpr MutableSharedPtr(std::nullptr_t) noexcept
         { // NOLINT
-            payload = new PointerPayload();
+            payload = new SharedPointerPayload<T, DeleterT>();
         }
 
         /*
@@ -98,7 +84,7 @@ namespace bg
         */
         explicit MutableSharedPtr(T *pointer) noexcept
         {
-            payload = new PointerPayload();
+            payload = new SharedPointerPayload<T, DeleterT>();
             payload->managedObject = pointer;
         }
 
@@ -115,7 +101,7 @@ namespace bg
         */
         MutableSharedPtr(T *pointer, const DeleterT &d) noexcept
         {
-            payload = new PointerPayload();
+            payload = new SharedPointerPayload<T, DeleterT>();
             payload->managedObject = pointer;
             payload->deleter = d;
         }
@@ -134,7 +120,7 @@ namespace bg
         */
         MutableSharedPtr(T *pointer, DeleterT &&d) noexcept
         {
-            payload = new PointerPayload();
+            payload = new SharedPointerPayload<T, DeleterT>();
             payload->managedObject = pointer;
             payload->deleter = d;
         }
@@ -146,31 +132,27 @@ namespace bg
             
             @param original the pointer to copy.
         */
-        MutableSharedPtr(const MutableSharedPtr<T, DeleterT> &original) {
+        MutableSharedPtr(const MutableSharedPtr<T, DeleterT> &original)
+        {
             payload = original.payload;
             payload->count++;
         };
 
+        /*
+            Destructor
+        */
         ~MutableSharedPtr()
         {
             payload->count--;
-            if(payload->count < 1) {
+            if (payload->count < 1)
+            {
                 payload->deleter(payload->managedObject);
-                delete payload;
+                if (payload->weakCount < 1)
+                {
+                    delete payload;
+                }
             }
-        }
-
-        /*
-            Releases ownership of the managed memory, if any, without triggering
-            cleanup.
-
-            @return the pointer to the contained object.
-        */
-        T *release() noexcept
-        {
-            auto hold = payload->managedObject;
-            payload->managedObject = nullptr;
-            return hold;
+            payload = new SharedPointerPayload<T, DeleterT>();
         }
 
         /*
@@ -215,7 +197,8 @@ namespace bg
             Gets the current count of different MutableSharedPtr instances including the current one.
             If no object is being managed, returns 0.
         */
-        long useCount() const noexcept {
+        long useCount() const noexcept
+        {
             return payload->managedObject != nullptr ? payload->count : 0;
         }
 
