@@ -1,8 +1,7 @@
 set(
     TESTS 
-        # "src/example.cxx"
-        # "src/memoryfunctions.cxx"
-        "src/pointers/MutableUniquePtr.cxx"
+        "src/pointers/TestHelpers.cxx"
+        "src/pointers/MutableSharedPtr.cxx"
 )
 
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)

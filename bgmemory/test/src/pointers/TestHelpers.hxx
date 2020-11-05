@@ -65,9 +65,6 @@ public:
   }
 };
 
-int CountableTestDeleter::deleteCount;
-int CountableTestDeleter::constructCount;
-
 class TrackedDeletableTestObject
 {
   static int liveObjectCount;
@@ -90,8 +87,6 @@ public:
 
   static int getLiveObjectCount() { return liveObjectCount; }
 };
-
-int TrackedDeletableTestObject::liveObjectCount;
 
 class SimpleTestObject
 {

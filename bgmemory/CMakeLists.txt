@@ -1,8 +1,5 @@
 set(
     SOURCES 
-        "include/bgmemory/pointers/MutableUniquePtr.hxx"
-        "include/bgmemory/DefaultDeleter.hxx"
-
         # "src/memoryfunctions.cxx"
         "src/bulletpool.cxx"
 
