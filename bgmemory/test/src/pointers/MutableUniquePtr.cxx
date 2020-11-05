@@ -97,9 +97,12 @@ TEST(mutable_unique_ptr,
   const bool expected = false;
 
   bg::MutableUniquePtr<int> p(new int());
-  p.release();
+  auto danglingPointer = p.release();
 
   ASSERT_FALSE(p);
+  
+  //Clean up the leak
+  delete(danglingPointer);
 }
 
 TEST(mutable_unique_ptr,
@@ -110,6 +113,9 @@ TEST(mutable_unique_ptr,
   auto released = p.release();
 
   ASSERT_EQ(raw, released);
+  
+  //Clean up the leak
+  delete(released);
 }
 
 TEST(mutable_unique_ptr,
@@ -175,9 +181,12 @@ TEST(mutable_unique_ptr,
   const bool expected = false;
 
   bg::MutableUniquePtr<int, IdTestDeleter<int>> p(new int(), IdTestDeleter<int>());
-  p.release();
+  auto released = p.release();
 
   ASSERT_FALSE(p);
+
+  //Clean up the leak
+  delete(released);
 }
 
 TEST(mutable_unique_ptr,
@@ -188,6 +197,9 @@ TEST(mutable_unique_ptr,
   auto released = p.release();
 
   ASSERT_EQ(raw, released);
+  
+  //Clean up the leak
+  delete(released);
 }
 
 TEST(mutable_unique_ptr,
@@ -281,9 +293,12 @@ TEST(mutable_unique_ptr,
 
   const IdTestDeleter<int> d;
   bg::MutableUniquePtr<int, IdTestDeleter<int>> p(new int(), d);
-  p.release();
+  auto released = p.release();
 
   ASSERT_FALSE(p);
+  
+  //Clean up the leak
+  delete(released);
 }
 
 TEST(mutable_unique_ptr,
@@ -295,6 +310,9 @@ TEST(mutable_unique_ptr,
   auto released = p.release();
 
   ASSERT_EQ(raw, released);
+  
+  //Clean up the leak
+  delete(released);
 }
 
 TEST(mutable_unique_ptr,
@@ -367,9 +385,12 @@ TEST(mutable_unique_ptr,
   int* expected = nullptr;
 
   bg::MutableUniquePtr<int> p(new int());
-  p.release();
+  auto released = p.release();
 
   ASSERT_EQ(expected, p.get());
+  
+  //Clean up the leak
+  delete(released);
 }
 
 TEST(mutable_unique_ptr,
