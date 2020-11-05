@@ -102,7 +102,7 @@ TEST(mutable_unique_ptr,
   ASSERT_FALSE(p);
   
   //Clean up the leak
-  delete(danglingPointer);
+  delete danglingPointer;
 }
 
 TEST(mutable_unique_ptr,
@@ -115,7 +115,7 @@ TEST(mutable_unique_ptr,
   ASSERT_EQ(raw, released);
   
   //Clean up the leak
-  delete(released);
+  delete released;
 }
 
 TEST(mutable_unique_ptr,
@@ -186,7 +186,7 @@ TEST(mutable_unique_ptr,
   ASSERT_FALSE(p);
 
   //Clean up the leak
-  delete(released);
+  delete released;
 }
 
 TEST(mutable_unique_ptr,
@@ -199,7 +199,7 @@ TEST(mutable_unique_ptr,
   ASSERT_EQ(raw, released);
   
   //Clean up the leak
-  delete(released);
+  delete released;
 }
 
 TEST(mutable_unique_ptr,
@@ -298,7 +298,7 @@ TEST(mutable_unique_ptr,
   ASSERT_FALSE(p);
   
   //Clean up the leak
-  delete(released);
+  delete released;
 }
 
 TEST(mutable_unique_ptr,
@@ -312,7 +312,7 @@ TEST(mutable_unique_ptr,
   ASSERT_EQ(raw, released);
   
   //Clean up the leak
-  delete(released);
+  delete released;
 }
 
 TEST(mutable_unique_ptr,
@@ -390,7 +390,7 @@ TEST(mutable_unique_ptr,
   ASSERT_EQ(expected, p.get());
   
   //Clean up the leak
-  delete(released);
+  delete released;
 }
 
 TEST(mutable_unique_ptr,

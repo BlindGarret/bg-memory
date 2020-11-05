@@ -29,7 +29,7 @@ namespace bg {
     but the standard implementation is far better tested, and likely
     simply better. Use this implementation only if you have a good reason.
 
-    Deleter is automatically setup to use the standard delete() function,
+    Deleter is automatically setup to use the standard delete function,
     but can be replaced with a function object in place of the default deleter.
 
     When BG_MEMORY_MULTITHREAD is defined the pointer will start using mutex
@@ -137,7 +137,7 @@ class MutableUniquePtr {
 
   ~MutableUniquePtr() {
     payload->deleter(payload->managedObject);
-    delete(payload);
+    delete payload;
   }
 
   /*
