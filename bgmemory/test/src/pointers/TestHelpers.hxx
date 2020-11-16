@@ -2,8 +2,10 @@
 #ifndef TEST_POINTERS_TESTHELPERS_HXX_
 #define TEST_POINTERS_TESTHELPERS_HXX_
 
+#include "bgmemory/pointers/Deleter.hxx"
+
 template <class T>
-class IdTestDeleter
+class IdTestDeleter : public bg::Deleter<T>
 {
   static int nextId;
   int id;
@@ -24,9 +26,11 @@ public:
   {
     return id;
   }
-  
-  void operator()(T *pointer) {
-    if (pointer != nullptr) {
+
+  void operator()(T *pointer)
+  {
+    if (pointer != nullptr)
+    {
       delete pointer;
     }
   }
@@ -35,7 +39,8 @@ public:
 template <class T>
 int IdTestDeleter<T>::nextId;
 
-class CountableTestDeleter
+template <class T>
+class CountableTestDeleter : public bg::Deleter<T>
 {
   static int deleteCount;
   static int constructCount;
@@ -103,5 +108,10 @@ public:
     return value;
   }
 };
+
+template <class T>
+int CountableTestDeleter<T>::deleteCount;
+template <class T>
+int CountableTestDeleter<T>::constructCount;
 
 #endif // TEST_POINTERS_TESTHELPERS_HXX_

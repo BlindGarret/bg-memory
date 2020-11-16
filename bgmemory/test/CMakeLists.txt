@@ -2,6 +2,8 @@ set(
     TESTS 
         "src/pointers/TestHelpers.cxx"
         "src/pointers/MutableSharedPtr.cxx"
+        "src/pointers/MutableWeakPtr.cxx"
+        "src/pointers/SharedPtrMutator.cxx"
 )
 
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)

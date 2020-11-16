@@ -3,18 +3,23 @@
 #define BGMEMORY_INCLUDE_BGMEMORY_POINTERS_MUTABLEWEAKPTR_HXX_
 
 #include <memory>
+#include "bgmemory/pointers/SharedPointerPayload.hxx"
+#include "bgmemory/pointers/MutableSharedPtr.hxx"
 #include "bgmemory/DefaultDeleter.hxx"
 
 #ifdef BG_MEMORY_MULTITHREAD
 
 #endif // BG_MEMORY_MULTITHREAD
 
-namespace bg {
-    
+//todo: Cleanup Comments invalidated by refactor
+
+namespace bg
+{
+
     /*
         Weak pointer class, to be used as a drop in replacement for the
         standard library weak_ptr. The main difference is the ability
-        for the shared_ptr attached to mutate the underlying pointer for 
+        for the pointer attached to mutate the underlying pointer for 
         all copies, and all weak ptrs.
 
         The reason for this class is that some of our memory pool structures
@@ -36,11 +41,145 @@ namespace bg {
         deleted once, and references will be atomically decremented and incremented.
         No other guarantees are made.
     */
-    template <class T, class DeleterT = DefaultDeleter<T>>
-    class MutableSharedPtr
+    template <class T>
+    class MutableWeakPtr
     {
+        SharedPointerPayload<T> *payload = nullptr;
 
+    public:
+        /*
+            Constructs a weak pointer with no object.
+
+            This constructor will use the deleter object using the default
+            constructor, so it requires a default constructable deleter with a
+            noexcept guarantee.
+        */
+        constexpr MutableWeakPtr() noexcept
+        { // NOLINT
+            payload = new SharedPointerPayload<T>();
+        }
+
+        /*
+            Constructs a weak pointer copying from another weak pointer.
+
+            @param r weak pointer to copy from
+        */
+        MutableWeakPtr(const MutableWeakPtr<T> &r) noexcept
+        {
+            payload = r.payload;
+            payload->weakCount++;
+        }
+
+        /*
+            Constructs a weak pointer copying from another weak pointer.
+
+            @param r weak pointer to copy from
+        */
+        MutableWeakPtr(const MutableSharedPtr<T> &r) noexcept
+        {
+            payload = r.payload;
+            payload->weakCount++;
+        }
+
+        /*
+            Constructs a weak pointer copying from another weak pointer.
+
+            @param r weak pointer to copy from
+        */
+        MutableWeakPtr(MutableWeakPtr<T> &&r) noexcept
+        {
+            payload = r.payload;
+            payload->weakCount++;
+        }
+
+        /*
+            Destructor
+        */
+        ~MutableWeakPtr()
+        {
+            payload->weakCount--;
+            if (payload->count < 1 && payload->weakCount < 1)
+            {
+                delete payload;
+            }
+        }
+
+        /*
+            Assignment Operator
+        */
+        void operator=(const MutableSharedPtr<T> &p)
+        {
+            reset();
+            payload = p.payload;
+            payload->weakCount++;
+        }
+
+        /*
+            Assignment Operator
+        */
+        void operator=(const MutableWeakPtr<T> &p)
+        {
+            reset();
+            payload = p.payload;
+            payload->weakCount++;
+        }
+
+        /*
+            Replaces the managed object.
+
+            @param ptr pointer to the object to take ownership of.
+        */
+        void reset() noexcept
+        {
+            payload->weakCount--;
+            if (payload->count < 1 && payload->weakCount < 1)
+            {
+                delete payload;
+            }
+            payload->managedObject = nullptr;
+        }
+
+        /*
+            Swaps ownership of objects between this instance and the
+            given one.
+
+            @param other the instace of the shared pointer to swap with.
+        */
+        void swap(MutableWeakPtr<T> // NOLINT
+                      &other) noexcept
+        {
+            auto holdPayload = other.payload;
+            other.payload = payload;
+            payload = holdPayload;
+        }
+
+        /*
+            Gets the current count of different MutableSharedPtr instances not including this weak ptr or any others.
+            If no object is being managed, returns 0.
+        */
+        long useCount() const noexcept
+        {
+            return payload->managedObject != nullptr ? payload->count : 0;
+        }
+
+        bool expired() const noexcept
+        {
+            return payload->count == 0;
+        }
+
+        MutableSharedPtr<T> lock() const noexcept
+        {
+            auto ptr = MutableSharedPtr<T>();
+            if (expired())
+            {
+                return ptr;
+            }
+
+            ptr.payload = payload;
+            payload->count++;
+            return ptr;
+        }
     };
-}
+} // namespace bg
 
 #endif // BGMEMORY_INCLUDE_BGMEMORY_POINTERS_MUTABLEWEAKPTR_HXX_

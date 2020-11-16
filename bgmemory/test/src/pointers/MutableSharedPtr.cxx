@@ -1,5 +1,6 @@
-// Copyright [2019] BlindGarret<lroe2930@gmail.com>
+// Copyright [2020] BlindGarret<lroe2930@gmail.com>
 #include "bgmemory/pointers/MutableSharedPtr.hxx"
+#include "bgmemory/pointers/SharedPtrMutator.hxx"
 #include "./TestHelpers.hxx"
 
 #include "gmock/gmock.h"
@@ -7,47 +8,25 @@
 #include <iostream>
 
 TEST(mutable_shared_ptr,
-     DefaultConstructor_Called_ConstructsDeleter)
+     NullPtrConstructor_Called_DoesntConstructAdditionalDeleters)
 {
-  CountableTestDeleter::reset();
+  CountableTestDeleter<int>::reset();
 
-  bg::MutableSharedPtr<int, CountableTestDeleter> p;
+  bg::MutableSharedPtr<int> p(nullptr, new CountableTestDeleter<int>());
 
-  ASSERT_EQ(1, CountableTestDeleter::getConstructCount());
-}
-
-TEST(mutable_shared_ptr,
-     DefaultConstructor_CalledWithThenDestructed_CallsDeleter)
-{
-  CountableTestDeleter::reset();
-
-  {
-    bg::MutableSharedPtr<int, CountableTestDeleter> p;
-  }
-
-  ASSERT_EQ(1, CountableTestDeleter::getDeleteCount());
-}
-
-TEST(mutable_shared_ptr,
-     NullPtrConstructor_Called_ConstructsDeleter)
-{
-  CountableTestDeleter::reset();
-
-  bg::MutableSharedPtr<int, CountableTestDeleter> p(nullptr);
-
-  ASSERT_EQ(1, CountableTestDeleter::getConstructCount());
+  ASSERT_EQ(1, CountableTestDeleter<int>::getConstructCount());
 }
 
 TEST(mutable_shared_ptr,
      NullPtrConstructor_CalledWithThenDestructed_CallsDeleter)
 {
-  CountableTestDeleter::reset();
+  CountableTestDeleter<int>::reset();
 
   {
-    bg::MutableSharedPtr<int, CountableTestDeleter> p(nullptr);
+    bg::MutableSharedPtr<int> p(nullptr, new CountableTestDeleter<int>());
   }
 
-  ASSERT_EQ(1, CountableTestDeleter::getDeleteCount());
+  ASSERT_EQ(1, CountableTestDeleter<int>::getDeleteCount());
 }
 
 //---------------------
@@ -125,7 +104,7 @@ TEST(mutable_shared_ptr,
 {
   TrackedDeletableTestObject::reset();
 
-  bg::MutableSharedPtr<TrackedDeletableTestObject, IdTestDeleter<TrackedDeletableTestObject>> p(new TrackedDeletableTestObject(), IdTestDeleter<TrackedDeletableTestObject>());
+  bg::MutableSharedPtr<TrackedDeletableTestObject> p(new TrackedDeletableTestObject(), new IdTestDeleter<TrackedDeletableTestObject>());
 
   ASSERT_EQ(1, TrackedDeletableTestObject::getLiveObjectCount());
 }
@@ -136,7 +115,7 @@ TEST(mutable_shared_ptr,
   TrackedDeletableTestObject::reset();
 
   {
-    bg::MutableSharedPtr<TrackedDeletableTestObject, IdTestDeleter<TrackedDeletableTestObject>> p(new TrackedDeletableTestObject(), IdTestDeleter<TrackedDeletableTestObject>());
+    bg::MutableSharedPtr<TrackedDeletableTestObject> p(new TrackedDeletableTestObject(), new IdTestDeleter<TrackedDeletableTestObject>());
   }
 
   ASSERT_EQ(0, TrackedDeletableTestObject::getLiveObjectCount());
@@ -147,7 +126,7 @@ TEST(mutable_shared_ptr,
 {
   auto raw = new int();
 
-  bg::MutableSharedPtr<int, IdTestDeleter<int>> p(raw, IdTestDeleter<int>());
+  bg::MutableSharedPtr<int> p(raw, new IdTestDeleter<int>());
 
   ASSERT_EQ(raw, p.get());
 }
@@ -158,7 +137,7 @@ TEST(mutable_shared_ptr,
   const int expected = 42;
   auto raw = new int(expected);
 
-  bg::MutableSharedPtr<int, IdTestDeleter<int>> p(raw, IdTestDeleter<int>());
+  bg::MutableSharedPtr<int> p(raw, new IdTestDeleter<int>());
 
   ASSERT_EQ(expected, *p);
 }
@@ -168,7 +147,7 @@ TEST(mutable_shared_ptr,
 {
   const bool expected = true;
 
-  bg::MutableSharedPtr<int, IdTestDeleter<int>> p(new int(), IdTestDeleter<int>());
+  bg::MutableSharedPtr<int> p(new int(), new IdTestDeleter<int>());
 
   ASSERT_TRUE(p);
 }
@@ -177,7 +156,7 @@ TEST(mutable_shared_ptr,
      PointerRValueDeleterConstructor_Called_AllowsForMethodAccess)
 {
   const int expected = 42;
-  bg::MutableSharedPtr<SimpleTestObject, IdTestDeleter<SimpleTestObject>> p(new SimpleTestObject(expected), IdTestDeleter<SimpleTestObject>());
+  bg::MutableSharedPtr<SimpleTestObject> p(new SimpleTestObject(expected), new IdTestDeleter<SimpleTestObject>());
 
   ASSERT_EQ(expected, p->GetValue());
 }
@@ -188,9 +167,9 @@ TEST(mutable_shared_ptr,
   IdTestDeleter<int>::reset();
   const int expected = 0;
 
-  bg::MutableSharedPtr<int, IdTestDeleter<int>> p(new int(), IdTestDeleter<int>());
+  bg::MutableSharedPtr<int> p(new int(), new IdTestDeleter<int>());
 
-  ASSERT_EQ(expected, p.getDeleter().getId());
+  ASSERT_EQ(expected, ((const IdTestDeleter<int> &)p.getDeleter()).getId());
 }
 
 TEST(mutable_shared_ptr,
@@ -199,106 +178,9 @@ TEST(mutable_shared_ptr,
   IdTestDeleter<int>::reset();
   const int expected = 0;
 
-  const bg::MutableSharedPtr<int, IdTestDeleter<int>> p(new int(), IdTestDeleter<int>());
+  const bg::MutableSharedPtr<int> p(new int(), new IdTestDeleter<int>());
 
-  ASSERT_EQ(expected, p.getDeleter().getId());
-}
-
-//---------------------
-//  Pointer Const Deleter constructor
-//---------------------
-
-TEST(mutable_shared_ptr,
-     PointerConstDeleterConstructor_Called_DoesNotConstructAdditionalObjects)
-{
-  TrackedDeletableTestObject::reset();
-
-  const IdTestDeleter<TrackedDeletableTestObject> d;
-  bg::MutableSharedPtr<TrackedDeletableTestObject, IdTestDeleter<TrackedDeletableTestObject>> p(new TrackedDeletableTestObject(), d);
-
-  ASSERT_EQ(1, TrackedDeletableTestObject::getLiveObjectCount());
-}
-
-TEST(mutable_shared_ptr,
-     PointerConstDeleterConstructor_CalledThenDestructed_DestructsTheObject)
-{
-  TrackedDeletableTestObject::reset();
-
-  {
-    const IdTestDeleter<TrackedDeletableTestObject> d;
-    bg::MutableSharedPtr<TrackedDeletableTestObject, IdTestDeleter<TrackedDeletableTestObject>> p(new TrackedDeletableTestObject(), d);
-  }
-
-  ASSERT_EQ(0, TrackedDeletableTestObject::getLiveObjectCount());
-}
-
-TEST(mutable_shared_ptr,
-     PointerConstDeleterConstructor_Called_SetsCorrectPointeConst)
-{
-  auto raw = new int();
-
-  const IdTestDeleter<int> d;
-  bg::MutableSharedPtr<int, IdTestDeleter<int>> p(raw, d);
-
-  ASSERT_EQ(raw, p.get());
-}
-
-TEST(mutable_shared_ptr,
-     PointerConstDeleterConstructor_Called_SetsCorrectValue)
-{
-  const int expected = 42;
-  auto raw = new int(expected);
-
-  const IdTestDeleter<int> d;
-  bg::MutableSharedPtr<int, IdTestDeleter<int>> p(raw, d);
-
-  ASSERT_EQ(expected, *p);
-}
-
-TEST(mutable_shared_ptr,
-     PointerConstDeleterConstructor_Called_SetsBoolToExpected)
-{
-  const bool expected = true;
-
-  const IdTestDeleter<int> d;
-  bg::MutableSharedPtr<int, IdTestDeleter<int>> p(new int(), d);
-
-  ASSERT_TRUE(p);
-}
-
-TEST(mutable_shared_ptr,
-     PointerConstDeleterConstructor_Called_AllowsForMethodAccess)
-{
-  const int expected = 42;
-
-  const IdTestDeleter<SimpleTestObject> d;
-  bg::MutableSharedPtr<SimpleTestObject, IdTestDeleter<SimpleTestObject>> p(new SimpleTestObject(expected), d);
-
-  ASSERT_EQ(expected, p->GetValue());
-}
-
-TEST(mutable_shared_ptr,
-     PointerConstDeleterConstructor_Called_CanGatherExpectedDeleter)
-{
-  IdTestDeleter<int>::reset();
-  const int expected = 0;
-
-  const IdTestDeleter<int> d;
-  bg::MutableSharedPtr<int, IdTestDeleter<int>> p(new int(), d);
-
-  ASSERT_EQ(expected, p.getDeleter().getId());
-}
-
-TEST(mutable_shared_ptr,
-     PointerConstDeleterConstructor_Called_CanGatherExpectedConstDeleter)
-{
-  IdTestDeleter<int>::reset();
-  const int expected = 0;
-
-  const IdTestDeleter<int> d;
-  const bg::MutableSharedPtr<int, IdTestDeleter<int>> p(new int(), d);
-
-  ASSERT_EQ(expected, p.getDeleter().getId());
+  ASSERT_EQ(expected, ((const IdTestDeleter<int> &)p.getDeleter()).getId());
 }
 
 //---------------------
@@ -342,43 +224,54 @@ TEST(mutable_shared_ptr,
 }
 
 //---------------------
-//  Mutate
+//  Pointer Copy constructor
 //---------------------
 
 TEST(mutable_shared_ptr,
-     Mutate_CalledWithNullPtr_SetsExpected)
-{
-  int *expected = nullptr;
-
-  bg::MutableSharedPtr<int> p(new int());
-  p.mutate(nullptr);
-
-  ASSERT_EQ(expected, p.get());
-}
-
-TEST(mutable_shared_ptr,
-     Mutate_CalledWithPtr_SetsExpected)
-{
-  int *expected = new int();
-
-  bg::MutableSharedPtr<int> p(new int());
-  p.mutate(expected);
-
-  ASSERT_EQ(expected, p.get());
-}
-
-TEST(mutable_shared_ptr,
-     Mutate_CalledWithTrackableObject_DeletesOriginalObjectCorrectly)
+     PointerCopyConstructor_Copied_IncrementsCountAsExpected)
 {
   TrackedDeletableTestObject::reset();
-  const int expected = 1; // 2 objects are created. then one is deleted.
+  const int expected = 2;
 
-  auto secondObject = new TrackedDeletableTestObject();
-  bg::MutableSharedPtr<TrackedDeletableTestObject> p(new TrackedDeletableTestObject());
-  ASSERT_EQ(expected + 1, TrackedDeletableTestObject::getLiveObjectCount());
-  p.mutate(secondObject);
+  bg::MutableSharedPtr<int> firstPointer(new int(1));
+  auto secondPointer = firstPointer;
 
-  ASSERT_EQ(expected, TrackedDeletableTestObject::getLiveObjectCount());
+  ASSERT_EQ(firstPointer.useCount(), expected);
+}
+
+TEST(mutable_shared_ptr,
+     PointerCopyConstructor_Copied_SetsSecondPointerValueToFirst)
+{
+  TrackedDeletableTestObject::reset();
+
+  bg::MutableSharedPtr<int> firstPointer(new int(1));
+  auto secondPointer = firstPointer;
+
+  ASSERT_EQ(*firstPointer, *secondPointer);
+}
+
+TEST(mutable_shared_ptr,
+     PointerCopyConstructor_Copied_OnlyConstructsSingleDeleter)
+{
+  CountableTestDeleter<int>::reset();
+
+  bg::MutableSharedPtr<int> p(nullptr, new CountableTestDeleter<int>());
+  auto p2 = p;
+
+  ASSERT_EQ(1, CountableTestDeleter<int>::getConstructCount());
+}
+
+TEST(mutable_shared_ptr,
+     PointerCopyConstructor_Copied_OnlyDeletesObjectOnce)
+{
+  CountableTestDeleter<int>::reset();
+
+  {
+    bg::MutableSharedPtr<int> p(nullptr, new CountableTestDeleter<int>());
+    auto p2 = p;
+  }
+
+  ASSERT_EQ(1, CountableTestDeleter<int>::getDeleteCount());
 }
 
 //---------------------
@@ -415,57 +308,6 @@ TEST(mutable_shared_ptr,
   ASSERT_EQ(first, *secondPointer);
 }
 
-//---------------------
-//  Pointer Copy constructor
-//---------------------
-
-TEST(mutable_shared_ptr,
-     PointerCopyConstructor_Copied_IncrementsCountAsExpected)
-{
-  TrackedDeletableTestObject::reset();
-  const int expected = 2;
-
-  bg::MutableSharedPtr<int> firstPointer(new int(1));
-  auto secondPointer = firstPointer;
-
-  ASSERT_EQ(firstPointer.useCount(), expected);
-}
-
-TEST(mutable_shared_ptr,
-     PointerCopyConstructor_Copied_SetsSecondPointerValueToFirst)
-{
-  TrackedDeletableTestObject::reset();
-
-  bg::MutableSharedPtr<int> firstPointer(new int(1));
-  auto secondPointer = firstPointer;
-
-  ASSERT_EQ(*firstPointer, *secondPointer);
-}
-
-TEST(mutable_shared_ptr,
-     PointerCopyConstructor_Copied_OnlyConstructsSingleDeleter)
-{
-  CountableTestDeleter::reset();
-
-  bg::MutableSharedPtr<int, CountableTestDeleter> p;
-  auto p2 = p;
-
-  ASSERT_EQ(1, CountableTestDeleter::getConstructCount());
-}
-
-TEST(mutable_shared_ptr,
-     PointerCopyConstructor_Copied_OnlyDeletesObjectOnce)
-{
-  CountableTestDeleter::reset();
-
-  {
-    bg::MutableSharedPtr<int, CountableTestDeleter> p;
-    auto p2 = p;
-  }
-
-  ASSERT_EQ(1, CountableTestDeleter::getDeleteCount());
-}
-
 TEST(mutable_shared_ptr,
      PointerCopyConstructor_CopiedAndSwapped_DidNotMutateValueForCopy)
 {
@@ -481,19 +323,4 @@ TEST(mutable_shared_ptr,
   ASSERT_EQ(changedValue, *firstPointer);
   ASSERT_EQ(initialValue, *secondPointer);
   ASSERT_EQ(initialValue, *newPointer);
-}
-
-TEST(mutable_shared_ptr,
-     PointerCopyConstructor_Mutated_ChangesAllInstances)
-{
-  TrackedDeletableTestObject::reset();
-  const int initialValue = 1;
-  const int changedValue = 2;
-
-  bg::MutableSharedPtr<int> firstPointer(new int(initialValue));
-  auto secondPointer = firstPointer;
-  firstPointer.mutate(new int(changedValue));
-
-  ASSERT_EQ(changedValue, *firstPointer);
-  ASSERT_EQ(changedValue, *secondPointer);
 }

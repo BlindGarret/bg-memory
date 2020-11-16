@@ -3,6 +3,7 @@
 #define BGMEMORY_INCLUDE_BGMEMORY_POINTERS_MUTABLESHAREDPTR_HXX_
 
 #include <memory>
+#include "bgmemory/pointers/Deleter.hxx"
 #include "bgmemory/DefaultDeleter.hxx"
 #include "bgmemory/pointers/SharedPointerPayload.hxx"
 
@@ -11,9 +12,16 @@
 #endif // BG_MEMORY_MULTITHREAD
 
 // TODO: Allow for specialized allocators so metadata isn't allocated on the stack
+// TODO: Operator overload * and ->
 
 namespace bg
 {
+    // Forward Declarations
+    template <class T>
+    class SharedPtrMutator;
+
+    template <class T>
+    class MutableWeakPtr;
 
     /*
         Shared pointer class, to be used as a drop in replacement for the
@@ -42,10 +50,12 @@ namespace bg
         deleted once, and references will be atomically decremented and incremented.
         No other guarantees are made.
     */
-    template <class T, class DeleterT = DefaultDeleter<T>>
+    template <class T>
     class MutableSharedPtr
     {
-        SharedPointerPayload<T, DeleterT> *payload = nullptr;
+        SharedPointerPayload<T> *payload = nullptr;
+        friend class SharedPtrMutator<T>;
+        friend class MutableWeakPtr<T>;
 
     public:
         /*
@@ -57,7 +67,8 @@ namespace bg
         */
         MutableSharedPtr()
         {
-            payload = new SharedPointerPayload<T, DeleterT>();
+            payload = new SharedPointerPayload<T>();
+            payload->count++;
         }
 
         /*
@@ -69,7 +80,8 @@ namespace bg
         */
         constexpr MutableSharedPtr(std::nullptr_t) noexcept
         { // NOLINT
-            payload = new SharedPointerPayload<T, DeleterT>();
+            payload = new SharedPointerPayload<T>();
+            payload->count++;
         }
 
         /*
@@ -84,8 +96,9 @@ namespace bg
         */
         explicit MutableSharedPtr(T *pointer) noexcept
         {
-            payload = new SharedPointerPayload<T, DeleterT>();
+            payload = new SharedPointerPayload<T>();
             payload->managedObject = pointer;
+            payload->count++;
         }
 
         /*
@@ -99,30 +112,12 @@ namespace bg
             @param pointer the pointer to take ownership of.
             @param d a reference to an instance of the deleter.
         */
-        MutableSharedPtr(T *pointer, const DeleterT &d) noexcept
+        template <class DeleterT = DefaultDeleter<T>>
+        MutableSharedPtr(T *pointer, DeleterT *d) noexcept
         {
-            payload = new SharedPointerPayload<T, DeleterT>();
+            payload = new SharedPointerPayload<T>(d);
             payload->managedObject = pointer;
-            payload->deleter = d;
-        }
-
-        /*
-            Constructs a shared pointer which takes ownership of the pointer
-            passed to it.
-
-            Thir constructor will move construct your deleter reference passed
-            into the function. The expected move constructor must be marked
-            noexcept.
-
-
-            @param pointer the pointer to take ownership of.
-            @param d an r-value reference to an instance of the deleter.
-        */
-        MutableSharedPtr(T *pointer, DeleterT &&d) noexcept
-        {
-            payload = new SharedPointerPayload<T, DeleterT>();
-            payload->managedObject = pointer;
-            payload->deleter = d;
+            payload->count++;
         }
 
         /*
@@ -132,7 +127,7 @@ namespace bg
             
             @param original the pointer to copy.
         */
-        MutableSharedPtr(const MutableSharedPtr<T, DeleterT> &original)
+        MutableSharedPtr(const MutableSharedPtr<T> &original)
         {
             payload = original.payload;
             payload->count++;
@@ -146,13 +141,12 @@ namespace bg
             payload->count--;
             if (payload->count < 1)
             {
-                payload->deleter(payload->managedObject);
+                (*payload->deleter)(payload->managedObject);
                 if (payload->weakCount < 1)
                 {
                     delete payload;
                 }
             }
-            payload = new SharedPointerPayload<T, DeleterT>();
         }
 
         /*
@@ -162,20 +156,7 @@ namespace bg
         */
         void reset(T *ptr) noexcept
         {
-            payload->deleter(payload->managedObject);
-            payload->managedObject = ptr;
-        }
-
-        /*
-            Cleans up the current managed object, then replaces it with the
-            new pointer. Unlike reset this changes the underlying pointer in
-            all derived weak pointers as well.
-
-            @param ptr the pointer to take ownership of.
-        */
-        void mutate(T *ptr) noexcept
-        {
-            payload->deleter(payload->managedObject);
+            (*payload->deleter)(payload->managedObject);
             payload->managedObject = ptr;
         }
 
@@ -185,7 +166,7 @@ namespace bg
 
             @param other the instace of the shared pointer to swap with.
         */
-        void swap(MutableSharedPtr<T, DeleterT> // NOLINT
+        void swap(MutableSharedPtr<T> // NOLINT
                       &other) noexcept
         {
             auto holdPayload = other.payload;
@@ -217,9 +198,9 @@ namespace bg
 
             @return reference to the defined deleter.
         */
-        DeleterT &getDeleter() noexcept
+        Deleter<T> &getDeleter() noexcept
         {
-            return payload->deleter;
+            return *payload->deleter;
         }
 
         /*
@@ -228,9 +209,9 @@ namespace bg
 
             @return constant reference to the defined deleter.
         */
-        const DeleterT &getDeleter() const noexcept
+        const Deleter<T> &getDeleter() const noexcept
         {
-            return payload->deleter;
+            return *payload->deleter;
         }
 
         /*
