@@ -68,3 +68,5 @@ TEST(shared_ptr_mutator,
     ASSERT_EQ(changedValue, *firstPointer);
     ASSERT_EQ(changedValue, *secondPointer);
 }
+
+// TODO: Test with weak pointer
