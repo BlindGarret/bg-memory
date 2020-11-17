@@ -22,15 +22,13 @@ namespace bg
     /*
         Weak pointer class, to be used as a drop in replacement for the
         standard library weak_ptr. The main difference is the ability
-        for the pointer attached to mutate the underlying pointer for 
-        all copies, and all weak ptrs.
+        for to mutate the underlying pointer for all shared and weak ptrs.
 
         The reason for this class is that some of our memory pool structures
         require the ability to swap out a pointer, in order to defragment a
-        heap or some such functionality, and have that swap effect not just
-        the current reference, but also effect the child references which are
-        pointing at the current reference. Swap and reset do not accomplish
-        this as they only mutate the current reference.
+        heap or some such functionality, and have that swap effect all pointers
+        referring to the current object. Swap and reset do not accomplish
+        this as they only mutate the current pointer.
 
         This should not be used as a replacement for smart pointers without
         good cause. It will be used throughout this library for consistency,
@@ -53,10 +51,6 @@ namespace bg
     public:
         /*
             Constructs a weak pointer with no object.
-
-            This constructor will use the deleter object using the default
-            constructor, so it requires a default constructable deleter with a
-            noexcept guarantee.
         */
         constexpr MutableWeakPtr() noexcept
         { // NOLINT
@@ -75,7 +69,7 @@ namespace bg
         }
 
         /*
-            Constructs a weak pointer copying from another weak pointer.
+            Constructs a weak pointer copying from a shared pointer.
 
             @param r weak pointer to copy from
         */
@@ -109,7 +103,9 @@ namespace bg
         }
 
         /*
-            Assignment Operator
+            Assignment Operator from a shared pointer
+
+            @param p a shared pointer you would like to copy into the weak pointer
         */
         void operator=(const MutableSharedPtr<T> &p)
         {
@@ -119,7 +115,9 @@ namespace bg
         }
 
         /*
-            Assignment Operator
+            Assignment Operator from a weak pointer
+
+            @param p a weak pointer you would like to copy
         */
         void operator=(const MutableWeakPtr<T> &p)
         {
@@ -160,17 +158,31 @@ namespace bg
         /*
             Gets the current count of different MutableSharedPtr instances not including this weak ptr or any others.
             If no object is being managed, returns 0.
+
+            @return the count of shared pointers referring to the object.
         */
         long useCount() const noexcept
         {
             return payload->managedObject != nullptr ? payload->count : 0;
         }
 
+        /*
+            Gets whether there is an actively mantained object reference available
+
+            @return whether the object has expired or not.
+        */
         bool expired() const noexcept
         {
             return payload->count == 0;
         }
 
+        /*
+            Attempts to lock the pointer checking whether it is expired and either
+            returning a new shared pointer with a reference to the object or a blank
+            shared pointer accordingly.
+
+            @return a shared pointer to the object if it isn't expired, else a blank shared pointer.
+        */
         MutableSharedPtr<T> lock() const noexcept
         {
             auto ptr = MutableSharedPtr<T>();

@@ -8,6 +8,9 @@
 
 namespace bg
 {
+    /*
+        Deleter interface used for cleaning up smart pointers.
+    */
     template <class T>
     class Deleter
     {

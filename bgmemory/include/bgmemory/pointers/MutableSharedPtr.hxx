@@ -39,11 +39,11 @@ namespace bg
         but the standard implementation is far better tested, and likely
         simply better. Use this implementation only if you have a good reason.
 
-        Deleter is automatically setup to use the standard delete function,
-        but can be replaced with a function object in place of the default deleter.
+        Deleters may be provided via the deleter interface. The current implementation
+        uses a pointer, and will clean up the pointer for you.
 
         When BG_MEMORY_MULTITHREAD is defined the pointer will start using mutex
-        locks around assignments and deletion. As with all smart pointers, there is
+        locks around assignments/deletions/reads. As with all smart pointers, there is
         no guarantee of thread safety with the stored object in memory. Any
         reference counting and deletion will be thread safe. The object will only be
         deleted once, and references will be atomically decremented and incremented.
@@ -59,10 +59,6 @@ namespace bg
     public:
         /*
             Constructs a shared pointer with no owned object.
-
-            This constructor will use the deleter object using the default
-            constructor, so it requires a default constructable deleter with a
-            noexcept guarantee.
         */
         MutableSharedPtr()
         {
@@ -72,10 +68,6 @@ namespace bg
 
         /*
             Constructs a shared pointer with no owned object.
-
-            This constructor will use the deleter object using the default
-            constructor, so it requires a default constructable deleter with a
-            noexcept guarantee.
         */
         constexpr MutableSharedPtr(std::nullptr_t) noexcept
         { // NOLINT
@@ -86,10 +78,6 @@ namespace bg
         /*
             Constructs a shared pointer which takes ownership of the pointer
             passed to it.
-
-            This constructor will use the deleter object using the default
-            constructor, so it requires a default constructable deleter with a
-            noexcept guarantee.
 
             @param pointer the pointer to take ownership of.
         */
@@ -104,14 +92,14 @@ namespace bg
             Constructs a shared pointer which takes ownership of the pointer
             passed to it.
 
-            This constructor will copy construct your deleter reference passed
-            into the function. The expected copy constructor must be marked
-            noexcept.
+            This constructor will take ownership of the DeleterT Pointer passed to it.
+            DeleterT must be of type bg::Deleter
+            Cleanup of deleter will be handled by the pointer
 
             @param pointer the pointer to take ownership of.
             @param d a reference to an instance of the deleter.
         */
-        template <class DeleterT = DefaultDeleter<T>>
+        template <class DeleterT>
         MutableSharedPtr(T *pointer, DeleterT *d) noexcept
         {
             payload = new SharedPointerPayload<T>(d);
@@ -176,6 +164,8 @@ namespace bg
         /*
             Gets the current count of different MutableSharedPtr instances including the current one.
             If no object is being managed, returns 0.
+
+            @return count of shared pointers refering to this object.
         */
         long useCount() const noexcept
         {

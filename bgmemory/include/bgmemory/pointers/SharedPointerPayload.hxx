@@ -10,6 +10,9 @@
 
 namespace bg
 {
+    /*
+        Payload object for pointers
+    */
     template <class T>
     struct SharedPointerPayload
     {
