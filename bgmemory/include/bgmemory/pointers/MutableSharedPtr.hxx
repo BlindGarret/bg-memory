@@ -5,7 +5,7 @@
 #include <memory>
 #include "bgmemory/pointers/Deleter.hxx"
 #include "bgmemory/DefaultDeleter.hxx"
-#include "bgmemory/pointers/SharedPointerPayload.hxx"
+#include "bgmemory/pointers/inner/SharedPointerPayload.hxx"
 
 #ifdef BG_MEMORY_MULTITHREAD
 
@@ -52,7 +52,7 @@ namespace bg
     template <class T>
     class MutableSharedPtr
     {
-        SharedPointerPayload<T> *payload = nullptr;
+        inner::SharedPointerPayload<T> *payload = nullptr;
         friend class SharedPtrMutator<T>;
         friend class MutableWeakPtr<T>;
 
@@ -62,7 +62,7 @@ namespace bg
         */
         MutableSharedPtr()
         {
-            payload = new SharedPointerPayload<T>();
+            payload = new inner::SharedPointerPayload<T>();
             payload->count++;
         }
 
@@ -71,7 +71,7 @@ namespace bg
         */
         constexpr MutableSharedPtr(std::nullptr_t) noexcept
         { // NOLINT
-            payload = new SharedPointerPayload<T>();
+            payload = new inner::SharedPointerPayload<T>();
             payload->count++;
         }
 
@@ -83,7 +83,7 @@ namespace bg
         */
         explicit MutableSharedPtr(T *pointer) noexcept
         {
-            payload = new SharedPointerPayload<T>();
+            payload = new inner::SharedPointerPayload<T>();
             payload->managedObject = pointer;
             payload->count++;
         }
@@ -102,7 +102,7 @@ namespace bg
         template <class DeleterT>
         MutableSharedPtr(T *pointer, DeleterT *d) noexcept
         {
-            payload = new SharedPointerPayload<T>(d);
+            payload = new inner::SharedPointerPayload<T>(d);
             payload->managedObject = pointer;
             payload->count++;
         }

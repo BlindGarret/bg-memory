@@ -3,7 +3,7 @@
 #define BGMEMORY_INCLUDE_BGMEMORY_POINTERS_SHAREDPTRMUTATOR_HXX_
 
 #include <functional>
-#include "bgmemory/pointers/SharedPointerPayload.hxx"
+#include "bgmemory/pointers/inner/SharedPointerPayload.hxx"
 #include "bgmemory/pointers/MutableSharedPtr.hxx"
 #include "bgmemory/pointers/MutableWeakPtr.hxx"
 #include "bgmemory/DefaultDeleter.hxx"
@@ -26,7 +26,7 @@ namespace bg
     template <class T>
     class SharedPtrMutator
     {
-        SharedPointerPayload<T> *payload = nullptr;
+        inner::SharedPointerPayload<T> *payload = nullptr;
 
     public:
         /*

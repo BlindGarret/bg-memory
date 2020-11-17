@@ -8,7 +8,7 @@
 
 #endif // BG_MEMORY_MULTITHREAD
 
-namespace bg
+namespace bg::inner
 {
     /*
         Payload object for pointers
@@ -49,6 +49,6 @@ namespace bg
         }
     };
 
-} // namespace bg
+} // namespace bg::inner
 
 #endif // BGMEMORY_INCLUDE_BGMEMORY_POINTERS_SHAREDPOINTERPAYLOAD_HXX_

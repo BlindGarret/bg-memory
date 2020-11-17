@@ -3,15 +3,13 @@
 #define BGMEMORY_INCLUDE_BGMEMORY_POINTERS_MUTABLEWEAKPTR_HXX_
 
 #include <memory>
-#include "bgmemory/pointers/SharedPointerPayload.hxx"
+#include "bgmemory/pointers/inner/SharedPointerPayload.hxx"
 #include "bgmemory/pointers/MutableSharedPtr.hxx"
 #include "bgmemory/DefaultDeleter.hxx"
 
 #ifdef BG_MEMORY_MULTITHREAD
 
 #endif // BG_MEMORY_MULTITHREAD
-
-//todo: Cleanup Comments invalidated by refactor
 
 namespace bg
 {
@@ -45,7 +43,7 @@ namespace bg
     template <class T>
     class MutableWeakPtr
     {
-        SharedPointerPayload<T> *payload = nullptr;
+        inner::SharedPointerPayload<T> *payload = nullptr;
         friend class SharedPtrMutator<T>;
 
     public:
@@ -54,7 +52,7 @@ namespace bg
         */
         constexpr MutableWeakPtr() noexcept
         { // NOLINT
-            payload = new SharedPointerPayload<T>();
+            payload = new inner::SharedPointerPayload<T>();
         }
 
         /*
