@@ -15,6 +15,9 @@
 
 namespace bg
 {
+    // Forward Declarations
+    template <class T>
+    class SharedPtrMutator;
 
     /*
         Weak pointer class, to be used as a drop in replacement for the
@@ -45,6 +48,7 @@ namespace bg
     class MutableWeakPtr
     {
         SharedPointerPayload<T> *payload = nullptr;
+        friend class SharedPtrMutator<T>;
 
     public:
         /*
