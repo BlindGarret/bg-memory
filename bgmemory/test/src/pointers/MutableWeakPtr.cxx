@@ -77,7 +77,7 @@ TEST(mutable_weak_ptr,
     bg::MutableWeakPtr<int> w = p;
     auto p2 = w.lock();
 
-    ASSERT_EQ(expected, *p2.get());
+    ASSERT_EQ(expected, *p2);
 }
 
 TEST(mutable_weak_ptr,
@@ -152,6 +152,6 @@ TEST(mutable_weak_ptr,
     bg::MutableWeakPtr<int> w2 = p2;
     w.swap(w2);
 
-    ASSERT_EQ(expectedValueOne, *w2.lock().get());
-    ASSERT_EQ(expectedValueTwo, *w.lock().get());
+    ASSERT_EQ(expectedValueOne, *w2.lock());
+    ASSERT_EQ(expectedValueTwo, *w.lock());
 }

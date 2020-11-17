@@ -12,7 +12,6 @@
 #endif // BG_MEMORY_MULTITHREAD
 
 // TODO: Allow for specialized allocators so metadata isn't allocated on the stack
-// TODO: Operator overload * and ->
 
 namespace bg
 {
